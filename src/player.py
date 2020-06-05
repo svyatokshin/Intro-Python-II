@@ -2,19 +2,40 @@
 # currently.
 
 class Player:
-    def __init__(self, name, room, direction=None):
+    def __init__(self, name, current_room):
         self.name = name
-        self.room = room
-        self.direction = direction
-        self.inventory = []
+        self.current_room = current_room
+        self.items = []
 
     def movement(self, direction):
-        move = getattr(self.room, f"{direction}_to")
-        if move != None:
-            self.room = move
-            print(self.room)
+        new_room = getattr(self.current_room, f"{direction}_to")
+        if new_room != None:
+            self.current_room = new_room
+            print(self.current_room)
+            print("Items in the room: '{}'\n".format(
+                ", ".join([item.name for item in self.current_room.items])))
         else:
             print("you cannot go this direction, please choose another")
 
-    # def __str__(self):
-    #     return f"Your name is {self.name} and the location you are in is {self.room}."
+    def take(self, item_name):
+        item = self.current_room.drop(item_name)
+        self.items.append(item)
+        item.on_take()
+        return item
+
+    def drop(self, item_name):
+        item = self.find(item_name)
+        self.items.remove(item)
+        self.current_room.take(item)
+        item.on_drop()
+        return item
+
+    def find(self, item_name):
+        for item in self.items:
+            if item.name == item_name:
+                return item
+
+    def inventory(self):
+        print("\nInventory:\n")
+        for idx, item in enumerate(self.items):
+            print(f"  " + str(idx+1) + ") " + item.name + "\n")
